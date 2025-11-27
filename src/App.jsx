@@ -99,7 +99,7 @@ const AppRoutes = () => {
 
   return (
     <>
-    hi
+    
       <Routes>
         {/* Auth routes - public routes */}
         <Route
