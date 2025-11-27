@@ -48,13 +48,16 @@ export default function AssignAssetsModal({
       console.log("Fetching assets for org:", organizationId);
       if (!organizationId) return;
 
-      const response = await axiosPrivate.get(`/organizations/${organizationId}/assigned-assets`);
+      const response = await axiosPrivate.get(`/${organizationId}/assets`);
       console.log("Assets response:", response.data);
-      if (response.data.success) {
-        setAssetOptions(response.data.data);
+      // Handle different response structures
+      if (response.data) {
+        const assets = response.data.data || response.data || [];
+        setAssetOptions(Array.isArray(assets) ? assets : []);
       }
     } catch (error) {
       console.error("Error fetching assets:", error);
+      setAssetOptions([]);
     }
   };
 
