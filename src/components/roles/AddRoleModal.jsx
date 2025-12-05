@@ -37,6 +37,7 @@ export default function AddRoleModal({
   const [error, setError] = useState("");
 
   const moduleMapping = {
+    Dashboard: "dashboard",
     Staff: "staff",
     Assets: "assets",
     Clients: "clients",
@@ -48,6 +49,7 @@ export default function AddRoleModal({
   };
 
   const reverseModuleMapping = {
+    dashboard: "Dashboard",
     staff: "Staff",
     assets: "Assets",
     clients: "Clients",
@@ -76,9 +78,20 @@ export default function AddRoleModal({
 
   const updatePermission = (id, field, value) => {
     setPermissions(
-      permissions.map((perm) =>
-        perm.id === id ? { ...perm, [field]: value } : perm
-      )
+      permissions.map((perm) => {
+        if (perm.id === id) {
+          const updated = { ...perm, [field]: value };
+          // If Dashboard is selected and module is being changed, reset add/edit/delete to false and set view to true
+          if (field === "module" && value === "Dashboard") {
+            updated.add = false;
+            updated.edit = false;
+            updated.view = true;
+            updated.delete = false;
+          }
+          return updated;
+        }
+        return perm;
+      })
     );
   };
 
@@ -89,12 +102,22 @@ export default function AddRoleModal({
       if (permission.module) {
         const apiModuleName =
           moduleMapping[permission.module] || permission.module;
-        formattedPermissions[apiModuleName] = {
-          add: permission.add,
-          edit: permission.edit,
-          view: permission.view,
-          delete: permission.delete,
-        };
+        // For Dashboard, ensure only view permission is set
+        if (permission.module === "Dashboard") {
+          formattedPermissions[apiModuleName] = {
+            add: false,
+            edit: false,
+            view: true,
+            delete: false,
+          };
+        } else {
+          formattedPermissions[apiModuleName] = {
+            add: permission.add,
+            edit: permission.edit,
+            view: permission.view,
+            delete: permission.delete,
+          };
+        }
       }
     });
 
@@ -197,14 +220,28 @@ export default function AddRoleModal({
       setDescription(editData.description || "");
 
       const newPermissions = Object.entries(editData.permissions || {}).map(
-        ([moduleKey, perms], index) => ({
-          id: index + 1,
-          module: reverseModuleMapping[moduleKey] || moduleKey,
-          add: perms.add,
-          edit: perms.edit,
-          view: perms.view,
-          delete: perms.delete,
-        })
+        ([moduleKey, perms], index) => {
+          const moduleName = reverseModuleMapping[moduleKey] || moduleKey;
+          // For Dashboard, enforce only view permission
+          if (moduleName === "Dashboard") {
+            return {
+              id: index + 1,
+              module: moduleName,
+              add: false,
+              edit: false,
+              view: true,
+              delete: false,
+            };
+          }
+          return {
+            id: index + 1,
+            module: moduleName,
+            add: perms.add,
+            edit: perms.edit,
+            view: perms.view,
+            delete: perms.delete,
+          };
+        }
       );
 
       setPermissions(newPermissions);
@@ -306,13 +343,16 @@ export default function AddRoleModal({
 
                   <select
                     value={permission.module}
-                    onChange={(e) =>
-                      updatePermission(permission.id, "module", e.target.value)
-                    }
+                    onChange={(e) => {
+                      const selectedModule = e.target.value;
+                      // updatePermission will handle Dashboard-specific logic automatically
+                      updatePermission(permission.id, "module", selectedModule);
+                    }}
                     className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#ED1C24]"
                     disabled={isSubmitting}
                   >
                     <option value="">Select module</option>
+                    <option value="Dashboard">Dashboard</option>
                     <option value="Staff">Staff</option>
                     <option value="Assets">Assets</option>
                     <option value="Clients">Clients</option>
@@ -324,77 +364,102 @@ export default function AddRoleModal({
                   </select>
 
                   <div className="flex items-center space-x-6">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`add-${permission.id}`}
-                        checked={permission.add}
-                        onCheckedChange={(checked) =>
-                          updatePermission(permission.id, "add", checked)
-                        }
-                        className="w-4 h-4 rounded-none data-[state=checked]:bg-[#ED1C24] data-[state=checked]:text-white"
-                        disabled={isSubmitting}
-                      />
-                      <Label
-                        htmlFor={`add-${permission.id}`}
-                        className="text-sm text-gray-700"
-                      >
-                        Add
-                      </Label>
-                    </div>
+                    {permission.module === "Dashboard" ? (
+                      // For Dashboard, only show View checkbox and auto-check it
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`view-${permission.id}`}
+                          checked={permission.view}
+                          onCheckedChange={() => {
+                            // Keep it always checked for Dashboard
+                            updatePermission(permission.id, "view", true);
+                          }}
+                          className="w-4 h-4 rounded-none data-[state=checked]:bg-[#ED1C24] data-[state=checked]:text-white"
+                          disabled={isSubmitting}
+                        />
+                        <Label
+                          htmlFor={`view-${permission.id}`}
+                          className="text-sm text-gray-700"
+                        >
+                          View
+                        </Label>
+                      </div>
+                    ) : (
+                      // For other modules, show all checkboxes
+                      <>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`add-${permission.id}`}
+                            checked={permission.add}
+                            onCheckedChange={(checked) =>
+                              updatePermission(permission.id, "add", checked)
+                            }
+                            className="w-4 h-4 rounded-none data-[state=checked]:bg-[#ED1C24] data-[state=checked]:text-white"
+                            disabled={isSubmitting}
+                          />
+                          <Label
+                            htmlFor={`add-${permission.id}`}
+                            className="text-sm text-gray-700"
+                          >
+                            Add
+                          </Label>
+                        </div>
 
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`edit-${permission.id}`}
-                        checked={permission.edit}
-                        onCheckedChange={(checked) =>
-                          updatePermission(permission.id, "edit", checked)
-                        }
-                        className="w-4 h-4 rounded-none data-[state=checked]:bg-[#ED1C24] data-[state=checked]:text-white"
-                        disabled={isSubmitting}
-                      />
-                      <Label
-                        htmlFor={`edit-${permission.id}`}
-                        className="text-sm text-gray-700"
-                      >
-                        Edit
-                      </Label>
-                    </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`edit-${permission.id}`}
+                            checked={permission.edit}
+                            onCheckedChange={(checked) =>
+                              updatePermission(permission.id, "edit", checked)
+                            }
+                            className="w-4 h-4 rounded-none data-[state=checked]:bg-[#ED1C24] data-[state=checked]:text-white"
+                            disabled={isSubmitting}
+                          />
+                          <Label
+                            htmlFor={`edit-${permission.id}`}
+                            className="text-sm text-gray-700"
+                          >
+                            Edit
+                          </Label>
+                        </div>
 
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`view-${permission.id}`}
-                        checked={permission.view}
-                        onCheckedChange={(checked) =>
-                          updatePermission(permission.id, "view", checked)
-                        }
-                        className="w-4 h-4 rounded-none data-[state=checked]:bg-[#ED1C24] data-[state=checked]:text-white"
-                        disabled={isSubmitting}
-                      />
-                      <Label
-                        htmlFor={`view-${permission.id}`}
-                        className="text-sm text-gray-700"
-                      >
-                        View
-                      </Label>
-                    </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`view-${permission.id}`}
+                            checked={permission.view}
+                            onCheckedChange={(checked) =>
+                              updatePermission(permission.id, "view", checked)
+                            }
+                            className="w-4 h-4 rounded-none data-[state=checked]:bg-[#ED1C24] data-[state=checked]:text-white"
+                            disabled={isSubmitting}
+                          />
+                          <Label
+                            htmlFor={`view-${permission.id}`}
+                            className="text-sm text-gray-700"
+                          >
+                            View
+                          </Label>
+                        </div>
 
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`delete-${permission.id}`}
-                        checked={permission.delete}
-                        onCheckedChange={(checked) =>
-                          updatePermission(permission.id, "delete", checked)
-                        }
-                        className="w-4 h-4 rounded-none data-[state=checked]:bg-[#ED1C24] data-[state=checked]:text-white"
-                        disabled={isSubmitting}
-                      />
-                      <Label
-                        htmlFor={`delete-${permission.id}`}
-                        className="text-sm text-gray-700"
-                      >
-                        Delete
-                      </Label>
-                    </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`delete-${permission.id}`}
+                            checked={permission.delete}
+                            onCheckedChange={(checked) =>
+                              updatePermission(permission.id, "delete", checked)
+                            }
+                            className="w-4 h-4 rounded-none data-[state=checked]:bg-[#ED1C24] data-[state=checked]:text-white"
+                            disabled={isSubmitting}
+                          />
+                          <Label
+                            htmlFor={`delete-${permission.id}`}
+                            className="text-sm text-gray-700"
+                          >
+                            Delete
+                          </Label>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}

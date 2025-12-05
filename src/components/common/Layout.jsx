@@ -142,19 +142,69 @@ const Layout = ({ children }) => {
                       const title = n.title || n.subject || "Notification";
                       const subtitle = n.description || n.message || n.body || "";
 
-                      const created =  n.createdAt || null;
+                      const created = n.createdAt || null;
 
                       const getRelative = (dateStr) => {
                         if (!dateStr) return "";
-                        const d = new Date(dateStr);
-                        if (isNaN(d)) return "";
-                        const diff = Math.floor((Date.now() - d.getTime()) / 1000);
-                        if (diff < 60) return `${diff}s ago`;
-                        const mins = Math.floor(diff / 60);
-                        if (mins < 60) return `${mins} min${mins > 1 ? 's' : ''} ago`;
-                        const hrs = Math.floor(mins / 60);
-                        if (hrs < 24) return `${hrs} hour${hrs > 1 ? 's' : ''} ago`;
-                        const days = Math.floor(hrs / 24);
+                        
+                        let d;
+                        // Handle DD/MM/YYYY format (e.g., "07/11/2025")
+                        if (typeof dateStr === 'string' && dateStr.includes('/')) {
+                          const parts = dateStr.split('/');
+                          if (parts.length === 3) {
+                            // Parse as DD/MM/YYYY format
+                            const day = parseInt(parts[0], 10);
+                            const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed in JS Date
+                            const year = parseInt(parts[2], 10);
+                            
+                            // Validate parsed values
+                            if (isNaN(day) || isNaN(month) || isNaN(year)) {
+                              console.warn("Invalid date parts:", dateStr);
+                              return "";
+                            }
+                            
+                            // Create date at start of day (00:00:00) for accurate day calculations
+                            d = new Date(year, month, day, 0, 0, 0, 0);
+                          } else {
+                            d = new Date(dateStr);
+                          }
+                        } else {
+                          // Try standard date parsing for ISO format or other formats
+                          d = new Date(dateStr);
+                        }
+                        
+                        if (isNaN(d.getTime())) {
+                          console.warn("Invalid date string:", dateStr);
+                          return "";
+                        }
+                        
+                        const now = new Date();
+                        // Set current time to start of day for accurate day comparisons
+                        const nowStartOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+                        const diff = Math.floor((nowStartOfDay.getTime() - d.getTime()) / 1000);
+                        
+                        // Handle future dates (shouldn't happen, but handle gracefully)
+                        if (diff < 0) return "just now";
+                        
+                        // If same day (diff is 0 or very small), show "today"
+                        if (diff === 0) return "today";
+                        
+                        // Calculate days difference
+                        const days = Math.floor(diff / 86400); // 86400 seconds in a day
+                        
+                        if (days === 0) {
+                          // Less than a day, show hours/minutes
+                          const hrs = Math.floor(diff / 3600);
+                          if (hrs === 0) {
+                            const mins = Math.floor(diff / 60);
+                            if (mins === 0) {
+                              return `${diff}s ago`;
+                            }
+                            return `${mins} min${mins > 1 ? 's' : ''} ago`;
+                          }
+                          return `${hrs} hour${hrs > 1 ? 's' : ''} ago`;
+                        }
+                        
                         if (days < 30) return `${days} day${days > 1 ? 's' : ''} ago`;
                         const months = Math.floor(days / 30);
                         if (months < 12) return `${months} month${months > 1 ? 's' : ''} ago`;

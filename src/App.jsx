@@ -163,7 +163,7 @@ const AppRoutes = () => {
         <Route
           path="/dashboard"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute module="dashboard" action="view">
               <Dashboard />
             </ProtectedRoute>
           }

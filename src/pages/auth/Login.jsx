@@ -211,7 +211,7 @@ const Login = () => {
           </div>
         </div>
 
-        <div className="flex items-center">
+        {/* <div className="flex items-center">
           <input
             type="checkbox"
             id="remember"
@@ -225,7 +225,7 @@ const Login = () => {
           >
             Remember me
           </label>
-        </div>
+        </div> */}
 
         <button
           onClick={handleLogin}

@@ -58,8 +58,8 @@ const Dashboard = () => {
         title: "Total Assets",
         value: organization_assets.total?.toString() || "0",
         change: `${organization_assets.deviation_percentage >= 0 ? '+' : ''}${organization_assets.deviation_percentage || 0}%`,
-        changeType: organization_assets.trend || "up",
-        period: "vs last month",
+        // changeType: organization_assets.trend || "up",
+        // period: "vs last month",
       });
     }
 
@@ -71,8 +71,8 @@ const Dashboard = () => {
         value: clients.total?.toString() || "0",
         active: clients.active,
         change: `${clients.deviation_percentage >= 0 ? '+' : ''}${clients.deviation_percentage || 0}%`,
-        changeType: clients.trend || "up",
-        period: "vs last month",
+        // changeType: clients.trend || "up",
+        // period: "vs last month",
       });
     }
 
@@ -84,8 +84,8 @@ const Dashboard = () => {
         value: vendors.total?.toString() || "0",
         active: vendors.active,
         change: `${vendors.deviation_percentage >= 0 ? '+' : ''}${vendors.deviation_percentage || 0}%`,
-        changeType: vendors.trend || "up",
-        period: "vs last month",
+        // changeType: vendors.trend || "up",
+        // period: "vs last month",
       });
     }
 
@@ -153,9 +153,9 @@ const Dashboard = () => {
       <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
         <div className="flex items-start justify-between mb-4">
           <h3 className="text-sm font-medium text-gray-600">{stat.title}</h3>
-          <button className="text-gray-400 hover:text-gray-600">
-            <MoreVertical className="w-4 h-4" />
-          </button>
+            {/* <button className="text-gray-400 hover:text-gray-600">
+              <MoreVertical className="w-4 h-4" />
+            </button> */}
         </div>
         
         <div className="flex items-end justify-between">
@@ -163,7 +163,7 @@ const Dashboard = () => {
             <p className="text-3xl font-semibold text-gray-900 mb-2">
               {stat.active !== undefined ? stat.active : stat.value}
             </p>
-            <div className="flex items-center gap-2 text-sm">
+            {/* <div className="flex items-center gap-2 text-sm">
               <span
                 className={`inline-flex items-center gap-1 font-medium ${
                   stat.changeType === "up"
@@ -173,8 +173,8 @@ const Dashboard = () => {
               >
                 {stat.changeType === "up" ? "↑" : "↓"} {stat.change}
               </span>
-              <span className="text-gray-500">{stat.period}</span>
-            </div>
+             
+            </div> */}
           </div>
           
           {/* Graph Image */}
@@ -236,12 +236,12 @@ const Dashboard = () => {
             <h2 className="text-lg font-semibold text-gray-900">
               Recent Updates
             </h2>
-            <button
+            {/* <button
               onClick={() => navigate("/asset")}
               className="px-4 py-2 bg-[#ED1C24] text-white text-sm font-medium rounded-md hover:bg-[#df1a22] transition-colors"
             >
               Add New Assets
-            </button>
+            </button> */}
           </div>
           <div className="divide-y divide-gray-100">
             {getRecentUpdates().length > 0 ? (

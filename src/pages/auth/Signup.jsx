@@ -224,14 +224,14 @@ const Signup = () => {
         if (!v) msg = "Country is required";
         break;
       case "city":
-        if (!v) msg = "City is required";
+        // City is optional
         break;
       case "state":
-        if (!v) msg = "State is required";
+        // State is optional
         break;
       case "zipcode":
-        if (!v) msg = "Zipcode is required";
-        else if (!/^\d{3,10}$/.test(v)) msg = "Enter a valid zipcode";
+        // if (!v) msg = "Zipcode is required";
+        // else if (!/^\d{3,10}$/.test(v)) msg = "Enter a valid zipcode";
         break;
       default:
         break;
@@ -249,9 +249,8 @@ const Signup = () => {
       "phone",
       "addressLine1",
       "country",
-      "city",
-      "state",
-      "zipcode",
+      // "state",
+      // "zipcode",
     ];
 
     const newErrors = {};
@@ -416,7 +415,7 @@ const Signup = () => {
                 <p className="text-sm text-red-600 mt-1">{errors.lastName}</p>
               )}
             </div>
-            <div>
+            <div className="col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Country*
               </label>
@@ -560,7 +559,7 @@ const Signup = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                State*
+                State
               </label>
               <div className="relative">
                 <select
@@ -592,7 +591,7 @@ const Signup = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                City*
+                City
               </label>
               <div className="relative">
                 <select
